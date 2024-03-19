@@ -1,8 +1,10 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "PID.h"
 
 // Simulated system parameters
-#define SIM_DT 0.1 // Simulation time step
+#define SIM_DT 0.01 // Simulation time step
 #define SIM_MAX_TIME 10 // Maximum simulation time
 
 // Initialize PID controller
@@ -31,7 +33,13 @@ double PIDController_Update(PIDController *pid, double position) {
 // Simulate the system
 void SimulateSystem(PIDController *pid) {
     double position = 0; // Initial position
-    double time = 0;
+    double time = 0;     // Initial time
+
+    FILE *f = fopen("time-position-signal.csv", "w+");
+
+    double temp_signal = PIDController_Update(pid, position);
+
+    fprintf(f, "%f,%f,%f,%f\n", time, position, temp_signal, pid->setpoint);
 
     while (time <= SIM_MAX_TIME) {
         double control_signal = PIDController_Update(pid, position);
@@ -39,15 +47,48 @@ void SimulateSystem(PIDController *pid) {
         position += control_signal * SIM_DT;
         
         // Print current time and position
-        printf("Time: %.2f, Position: %.2f\n", time, position);
+        printf("Time: %.2f, Position: %.2f, Setpoint: %.2f, Signal: %2f\n", time, position, pid->setpoint, control_signal);
 
         time += SIM_DT;
+
+        // Write Time, Position, Signal, and Setpoint
+        fprintf(f, "%f,%f,%f,%f\n", time, position, control_signal, pid->setpoint);
+
     }
 }
 
+
+// Ask User for Setpoint, KP, KI, KD
+double UserInput(char *prompt) {
+    double input = -1;
+    while (input < 0) {
+        printf("Enter the %s: ", prompt);
+        scanf("%lf", &input);
+        if (input < 0) {
+            printf("Invalid input. Please enter a positive number.\n");
+        }
+    }
+    return input;
+}
+
 int main() {
+
+    // Initialize PID controller
+
     PIDController pid;
-    PIDController_Init(&pid, 10.0, 2, 0.1, 0.5); // Initialize PID controller with setpoint
+    
+    // Ask User for Setpoint, KP, KI, KD
+
+    double setpoint, KP, KI, KD;
+
+    setpoint = UserInput("Setpoint");
+    KP = UserInput("KP");
+    KI = UserInput("KI");
+    KD = UserInput("KD");
+
+    // Initialize PID controller with setpoint, KP, KI, KD
+
+    PIDController_Init(&pid, setpoint, KP, KI, KD); 
 
     SimulateSystem(&pid);
 

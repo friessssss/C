@@ -1,9 +1,5 @@
 #include <stdio.h>
 
-// Simulated system parameters
-#define SIM_DT 0.1 // Simulation time step
-#define SIM_MAX_TIME 10 // Maximum simulation time
-
 typedef struct {
     // PID controller structure
 
@@ -16,8 +12,10 @@ typedef struct {
     double KD; // Derivative gain
 
     // Define Integrator Limits
-    double limMaxInt;
+    // double limMaxInt;
+    // double limMinInt;
 
+    
     double prev_error; // Previous error for calculating derivative
     double integral; // Integral term for integral control
 
