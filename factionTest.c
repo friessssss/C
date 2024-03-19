@@ -4,8 +4,10 @@
 #include "PID.h"
 
 // Simulated system parameters
-#define SIM_DT 0.01 // Simulation time step
+#define SIM_DT 0.001 // Simulation time step
 #define SIM_MAX_TIME 10 // Maximum simulation time
+#define MAX_INTEGRAL_TERM 0.01 // Maximum integral term
+#define MAX_ERROR 100 // Maximum error
 
 // Initialize PID controller
 void PIDController_Init(PIDController *pid, double setpoint, double KP, double KI, double KD) {
@@ -21,7 +23,28 @@ void PIDController_Init(PIDController *pid, double setpoint, double KP, double K
 double PIDController_Update(PIDController *pid, double position) {
     double error = pid->setpoint - position;
     pid->integral += error * SIM_DT;
-    double derivative = (error - pid->prev_error) / SIM_DT;
+
+    if (error > MAX_ERROR)
+        error = MAX_ERROR;
+    else if (error < -MAX_ERROR)
+        error = -MAX_ERROR;
+
+    // Anti-windup: Limit integral term
+    if (pid->integral > MAX_INTEGRAL_TERM)
+        pid->integral = MAX_INTEGRAL_TERM;
+    else if (pid->integral < -MAX_INTEGRAL_TERM)
+        pid->integral = -MAX_INTEGRAL_TERM;
+
+    // double derivative = (error - pid->prev_error) / SIM_DT;
+
+    double derivative;
+    if (pid->integral > MAX_INTEGRAL_TERM || pid->integral < -MAX_INTEGRAL_TERM) {
+        // If integral term is saturated, scale down derivative term
+        derivative = 0; // or any other appropriate value
+    } else {
+        derivative = (error - pid->prev_error) / SIM_DT;
+    }
+
     double output = pid->KP * error + pid->KI * pid->integral + pid->KD * derivative;
     
     pid->prev_error = error;
@@ -37,12 +60,10 @@ void SimulateSystem(PIDController *pid) {
 
     FILE *f = fopen("time-position-signal.csv", "w+");
 
-    double temp_signal = PIDController_Update(pid, position);
-
-    fprintf(f, "%f,%f,%f,%f\n", time, position, temp_signal, pid->setpoint);
-
     while (time <= SIM_MAX_TIME) {
+
         double control_signal = PIDController_Update(pid, position);
+
         // Simulate system dynamics (simple integration)
         position += control_signal * SIM_DT;
         
@@ -56,7 +77,6 @@ void SimulateSystem(PIDController *pid) {
 
     }
 }
-
 
 // Ask User for Setpoint, KP, KI, KD
 double UserInput(char *prompt) {

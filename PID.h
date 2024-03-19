@@ -10,11 +10,6 @@ typedef struct {
     double KP; // Proportional gain
     double KI; // Integral gain
     double KD; // Derivative gain
-
-    // Define Integrator Limits
-    // double limMaxInt;
-    // double limMinInt;
-
     
     double prev_error; // Previous error for calculating derivative
     double integral; // Integral term for integral control
