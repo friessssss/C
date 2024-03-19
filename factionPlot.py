@@ -7,8 +7,8 @@ setpoint = []
 time = []
 signal = []
 
-# Open the CSV file and read the data
 
+# Open the CSV file and read the data
 with open('time-position-signal.csv', 'r') as csvfile:
     plots = csv.reader(csvfile, delimiter=',')
     for row in plots:
@@ -17,8 +17,8 @@ with open('time-position-signal.csv', 'r') as csvfile:
         signal.append(float(row[2]))
         setpoint.append(float(row[3]))
 
-# Plotting the Data from the CSV file
 
+# Plotting the Data from the CSV file
 plt.subplot(2, 1, 1)
 plt.plot(time, position, label='Position')
 plt.plot(time, setpoint, label='Setpoint', linestyle='--', linewidth=2)
